@@ -15,3 +15,12 @@ ActiveRecord::Schema.define do
     t.integer :user_id
   end
 end
+
+RSpec.configure do |config|
+  config.around :each do |spec|
+    ActiveRecord::Base.transaction do
+      spec.call
+      raise ActiveRecord::Rollback
+    end
+  end
+end
