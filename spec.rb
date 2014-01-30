@@ -129,6 +129,14 @@ describe 'with 10 users and 100 posts' do
     Post.delete_all
   end
 
+  specify 'count the users and posts' do
+    user_count = User.count
+    post_count = Post.count
+
+    expect(user_count).to eq 10
+    expect(post_count).to eq 100
+  end
+
   specify 'find all the users' do
     users = User.all # REMOVE
     expect(users.pluck :id).to eq (1..10).to_a
@@ -158,12 +166,17 @@ describe 'with 10 users and 100 posts' do
     last5 = Post.order('id desc').limit(5) # REMOVE
     expect(last5.pluck :id).to eq (96..100).to_a.reverse
   end
+
+  specify 'users where the name is in user2, user3, user5, user7' do
+    usernames   = ['user 2', 'user 3', 'user 5', 'user 7']
+    prime_users = User.where name: usernames # REMOVE
+    expect(prime_users.pluck :name).to eq usernames
+  end
+
+  specify 'count the number of posts whose name has a 1 in it' do
+    post_count = Post.where("name like '%1%'")
+                     .count # REMOVE
+    expect(post_count).to eq 19
+  end
+
 end
-
-
-
-
-
-
-
-
