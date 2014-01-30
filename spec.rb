@@ -1,3 +1,4 @@
+# SOME SETUP (ignore this part, start below)
 require 'active_record'
 ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: ':memory:'
 
@@ -26,6 +27,7 @@ RSpec.configure do |config|
 end
 
 
+# THE SPECS (start here)
 describe 'creating active record instances' do
   class User < ActiveRecord::Base
     has_many :posts
@@ -102,7 +104,7 @@ describe 'creating active record instances' do
 end
 
 
-describe 'creating active record instances' do
+describe 'with 10 users and 100 posts' do
   class User < ActiveRecord::Base
     has_many :posts
   end
