@@ -21,53 +21,51 @@ describe 'creating active record instances' do
   end
   
   
-  describe 'instantiating' do
-    specify "instantiate a post, but don't save it" do
-      post = ??
-      
-      post_has_expected_attributes post
-      expect(post).to be_a_new_record
-    end
+  specify "instantiate a post, but don't save it" do
+    post = ??
     
-    specify 'instantiate a post and save it without using #save' do
-      post = ??
-      
-      post_has_expected_attributes post
-      expect(post).to be_persisted
-    end
+    post_has_expected_attributes post
+    expect(post).to be_a_new_record
+  end
+  
+  specify 'instantiate a post and save it without using #save' do
+    post = ??
     
-    specify 'create a user and build a post without referencing the Post class' do
-      user = User.create name: user_name
-      post = ??
-      
-      post_has_expected_attributes post
-      expect(post.user  ).to eq user
-      expect(user.posts ).to eq [post]
-      expect(post       ).to be_persisted
-    end
+    post_has_expected_attributes post
+    expect(post).to be_persisted
+  end
+  
+  specify 'create a user and build a post without referencing the Post class' do
+    user = User.create name: user_name
+    post = ??
     
-    specify 'instantiate a post and build it a user without saving or referencing the Post class' do
-      user = User.new name: user_name
-      post = ??
+    post_has_expected_attributes post
+    expect(post.user  ).to eq user
+    expect(user.posts ).to eq [post]
+    expect(post       ).to be_persisted
+  end
+  
+  specify 'instantiate a post and build it a user without saving or referencing the Post class' do
+    user = User.new name: user_name
+    post = ??
 
-      post_has_expected_attributes post
-      expect(post).to be_a_new_record
-      expect(user).to be_a_new_record
+    post_has_expected_attributes post
+    expect(post).to be_a_new_record
+    expect(user).to be_a_new_record
 
-      user.save!
-      expect(post.user   ).to eq user
-      expect(user.posts  ).to eq [post]
+    user.save!
+    expect(post.user   ).to eq user
+    expect(user.posts  ).to eq [post]
+  end
+  
+  specify 'build the post with block style' do
+    user = User.new do |u|
+      ??
     end
     
-    specify 'build the post with block style' do
-      user = User.new do |u|
-        ??
-      end
-      
-      expect(user.name       ).to eq user_name
-      expect(user            ).to be_a_new_record
-      expect(user.posts.size ).to eq 1
-      post_has_expected_attributes user.posts.first
-    end
+    expect(user.name       ).to eq user_name
+    expect(user            ).to be_a_new_record
+    expect(user.posts.size ).to eq 1
+    post_has_expected_attributes user.posts.first
   end
 end
