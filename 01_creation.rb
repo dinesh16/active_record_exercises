@@ -23,14 +23,14 @@ describe 'creating active record instances' do
   
   describe 'instantiating' do
     specify "instantiate a post, but don't save it" do
-      post = Post.new(name: post_name, caption: caption, body: body) # REMOVE
+      post = ??
       
       post_has_expected_attributes post
       expect(post).to be_a_new_record
     end
     
     specify 'instantiate a post and save it without using #save' do
-      post = Post.create(name: post_name, caption: caption, body: body) # REMOVE
+      post = ??
       
       post_has_expected_attributes post
       expect(post).to be_persisted
@@ -38,7 +38,7 @@ describe 'creating active record instances' do
     
     specify 'create a user and build a post without referencing the Post class' do
       user = User.create name: user_name
-      post = user.posts.create name: post_name, caption: caption, body: body # REMOVE
+      post = ??
       
       post_has_expected_attributes post
       expect(post.user  ).to eq user
@@ -48,7 +48,7 @@ describe 'creating active record instances' do
     
     specify 'instantiate a post and build it a user without saving or referencing the Post class' do
       user = User.new name: user_name
-      post = user.posts.build name: post_name, caption: caption, body: body # REMOVE
+      post = ??
 
       post_has_expected_attributes post
       expect(post).to be_a_new_record
@@ -61,12 +61,7 @@ describe 'creating active record instances' do
     
     specify 'build the post with block style' do
       user = User.new do |u|
-        u.name = user_name
-        u.posts.build do |post|
-          post.name = post_name  # REMOVE
-          post.caption = caption # REMOVE
-          post.body = body       # REMOVE
-        end
+        ??
       end
       
       expect(user.name       ).to eq user_name
