@@ -2,6 +2,43 @@
 require 'active_record'
 ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: ':memory:'
 
+
+# querying (show generated sql):
+#   joins
+#   includes (solution to n+1)
+#   scope (make a starts_with)
+#   pluck
+#   order
+# transactions
+# validations
+#   valid?
+#   save when invalid -> false
+#   save!/create! wen invalid -> error
+#   errors
+#   errors[:attribute]
+#   `validates :attribute_name, presence: true` list the others
+#   custom validations by editing errors
+#   `errors.add(:attribute, 'no dice!')`
+#   `errors[:base]`
+# associations
+#   belongs_to / has_many
+#   has_many :through
+#   class Physician < ActiveRecord::Base
+#     has_many :appointments
+#     has_many :patients, through: :appointments
+#   end
+#
+#   class Appointment < ActiveRecord::Base
+#     belongs_to :physician
+#     belongs_to :patient
+#   end
+#
+#   class Patient < ActiveRecord::Base
+#     has_many :appointments
+#     has_many :physicians, through: :appointments
+#   end
+
+
 ActiveRecord::Schema.define do
   self.verbose = false
 
@@ -35,6 +72,10 @@ describe 'creating active record instances' do
 
   class Post < ActiveRecord::Base
     belongs_to :user
+    scope :with_caption_including,
+      -> s { where"caption like ?", "%#{s}%" } # REMOVE
+    scope :without_caption_including,
+      -> s { where"caption not like ?", "%#{s}%" } # REMOVE
   end
 
   let(:user_name) { 'Some user name' }
@@ -162,21 +203,84 @@ describe 'with 10 users and 100 posts' do
     expect(second5.pluck :id).to eq (6..10).to_a
   end
 
-  specify 'the last 5 users (limit, order)' do
+  specify 'the 5 newest posts (limit, order)' do
     last5 = Post.order('id desc').limit(5) # REMOVE
     expect(last5.pluck :id).to eq (96..100).to_a.reverse
   end
 
-  specify 'users where the name is in user2, user3, user5, user7' do
+  specify 'users where the name is in "user 2", "user 3", "user 5", "user 7" (where)' do
     usernames   = ['user 2', 'user 3', 'user 5', 'user 7']
     prime_users = User.where name: usernames # REMOVE
     expect(prime_users.pluck :name).to eq usernames
   end
 
-  specify 'count the number of posts whose name has a 1 in it' do
-    post_count = Post.where("name like '%1%'")
-                     .count # REMOVE
+  specify 'count the number of posts whose name has a 1 in it (where, count)' do
+    post_count = Post.where("name like '%1%'").count # REMOVE
     expect(post_count).to eq 19
   end
 
+  specify 'the post whose name is "post 45" (where, first)' do
+    post = Post.where(name: 'post 45').first
+    expect(post.name).to eq 'post 45'
+  end
+
+  specify "user5's first three posts, without referencing Post (association, limit)" do
+    user5 = User.find 5
+    posts = user5.posts.limit(3)
+    expect(posts.pluck :id).to eq [41, 42, 43]
+  end
+
+  specify "user5's three most recent posts (most recent first), without referencing Post (association, limit, order)" do
+    user5 = User.find 5
+    posts = user5.posts.limit(3).order('id desc')
+    expect(posts.pluck :id).to eq [50, 49, 48]
+  end
+
+  specify "the first three users and their most recent post name (limit, includes)" do
+    users_and_posts = User.limit(3).includes(:posts).map { |u| [u.name, u.posts.take(2).map(&:name)] }
+    expect(users_and_posts).to eq [
+      ['user 0', ['post 0',  'post 1']],
+      ['user 1', ['post 10', 'post 11']],
+      ['user 2', ['post 20', 'post 21']],
+    ]
+  end
+
+  # you'll need to go back up and implement this
+  # REMEMBER: USE "?" FOR VALUES TO INTERPOLATE INTO THE QUERY
+  describe 'Post.with_caption_including' do
+    it 'is implemented' do
+      # nothing for you to do here,
+      # we're checking that with_caption_including is implemented correctly
+      posts = Post.with_caption_including('2')
+      expect(posts.pluck :id).to eq [3, 13, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 33, 43, 53, 63, 73, 83, 93]
+    end
+
+    specify 'second 5 posts with caption including "2"' do
+      posts = Post.with_caption_including('2').offset(5).limit(5) # REMOVE
+      expect(posts.pluck :id).to eq [24, 25, 26, 27, 28]
+    end
+
+    specify "a user's posts that contain the caption '3', using with_caption_including, without referencing the Post constant" do
+      user1  = User.find 1
+      user2  = User.find 2
+      posts1 = user1.posts.with_caption_including('3') # REMOVE
+      posts2 = user2.posts.with_caption_including('3') # REMOVE
+      expect(posts1.pluck :caption).to eq ['caption 3']
+      expect(posts2.pluck :caption).to eq ['caption 13']
+    end
+  end
+
+  describe 'Post.without_caption_including' do
+    it 'is implemented' do
+      # nothing for you to do here,
+      # we're checking that with_caption_including is implemented correctly
+      posts = User.first.posts.without_caption_including('2')
+      expect(posts.pluck :id).to eq [1, 2, 4, 5, 6, 7, 8, 9, 10]
+    end
+
+    specify 'posts with caption including "1", without caption including "2"' do
+      posts = Post.with_caption_including('1').without_caption_including('2') # REMOVE
+      expect(posts.pluck :id).to eq [2, 11, 12, 14, 15, 16, 17, 18, 19, 20, 32, 42, 52, 62, 72, 82, 92]
+    end
+  end
 end
