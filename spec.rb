@@ -3,12 +3,6 @@ require 'active_record'
 ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: ':memory:'
 
 
-# querying (show generated sql):
-#   joins
-#   includes (solution to n+1)
-#   scope (make a starts_with)
-#   pluck
-#   order
 # transactions
 # validations
 #   valid?
@@ -20,23 +14,6 @@ ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: ':memory:'
 #   custom validations by editing errors
 #   `errors.add(:attribute, 'no dice!')`
 #   `errors[:base]`
-# associations
-#   belongs_to / has_many
-#   has_many :through
-#   class Physician < ActiveRecord::Base
-#     has_many :appointments
-#     has_many :patients, through: :appointments
-#   end
-#
-#   class Appointment < ActiveRecord::Base
-#     belongs_to :physician
-#     belongs_to :patient
-#   end
-#
-#   class Patient < ActiveRecord::Base
-#     has_many :appointments
-#     has_many :physicians, through: :appointments
-#   end
 
 
 ActiveRecord::Schema.define do
@@ -305,11 +282,10 @@ describe 'with 10 users and 100 posts' do
 
   describe 'favouriting posts' do
     let(:author1) { User.find 1 }
-    let(:author2) { User.find 2 }
 
-    let(:reader1) { User.find 3 }
-    let(:reader2) { User.find 4 }
-    let(:reader3) { User.find 5 }
+    let(:reader1) { User.find 2 }
+    let(:reader2) { User.find 3 }
+    let(:reader3) { User.find 4 }
 
     specify 'a post can find the users who favourited it' do
       # You are going to need to edit the schema and the classes
@@ -333,6 +309,12 @@ describe 'with 10 users and 100 posts' do
       author1.posts.first.favourited_by << reader1
       author1.posts.last.favourited_by  << reader2
       expect(author1.fans).to eq [reader1, reader2]
+    end
+  end
+
+  describe 'validations' do
+    specify 'a user cannot favourite a post two times' do
+      pending 'add more stuffs here!'
     end
   end
 end
