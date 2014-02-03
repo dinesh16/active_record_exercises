@@ -52,6 +52,11 @@ ActiveRecord::Schema.define do
     t.text    :body
     t.integer :user_id
   end
+
+  create_table :user_favourites_posts do |t| # REMOVE
+    t.integer :user_id                       # REMOVE
+    t.integer :post_id                       # REMOVE
+  end                                        # REMOVE
 end
 
 RSpec.configure do |config|
@@ -66,16 +71,31 @@ end
 
 # THE SPECS (start here)
 describe 'creating active record instances' do
+  class UserFavouritesPost < ActiveRecord::Base # REMOVE
+    belongs_to :user                            # REMOVE
+    belongs_to :post                            # REMOVE
+  end                                           # REMOVE
+
   class User < ActiveRecord::Base
     has_many :posts
+    has_many :user_favourites_posts
+
+    def fans
+      posts.joins(:user_favourites_posts)
+           .joins('inner join users fan on fan.id = user_favourites_posts.user_id')
+           # how to now get the fans (favouriters)
+    end
   end
 
   class Post < ActiveRecord::Base
     belongs_to :user
-    scope :with_caption_including,
-      -> s { where"caption like ?", "%#{s}%" } # REMOVE
-    scope :without_caption_including,
-      -> s { where"caption not like ?", "%#{s}%" } # REMOVE
+
+    has_many   :user_favourites_posts
+    has_many   :favourited_by, through:    :user_favourites_posts,
+                               source:     :user
+
+    scope :with_caption_including,    -> s { where"caption like ?", "%#{s}%" }     # REMOVE
+    scope :without_caption_including, -> s { where"caption not like ?", "%#{s}%" } # REMOVE
   end
 
   let(:user_name) { 'Some user name' }
@@ -281,6 +301,31 @@ describe 'with 10 users and 100 posts' do
     specify 'posts with caption including "1", without caption including "2"' do
       posts = Post.with_caption_including('1').without_caption_including('2') # REMOVE
       expect(posts.pluck :id).to eq [2, 11, 12, 14, 15, 16, 17, 18, 19, 20, 32, 42, 52, 62, 72, 82, 92]
+    end
+  end
+
+  describe 'favouriting posts', t:true do
+    let(:author1) { User.find 1 }
+    let(:author2) { User.find 2 }
+
+    let(:reader1) { User.find 3 }
+    let(:reader2) { User.find 4 }
+    let(:reader3) { User.find 5 }
+
+    specify 'a user can favourite a post' do
+      # You are going to need to edit the schema and the classes
+      # to make this work
+      # http://guides.rubyonrails.org/association_basics.html
+      post = Post.first
+      post.favourited_by << reader1
+      post.favourited_by << reader3
+      expect(post.reload.favourited_by).to eq [reader1, reader3]
+    end
+
+    specify "can find an author's fans: who has favourited thier posts" do
+      author1.posts.first.favourited_by << reader1
+      author1.posts.last.favourited_by  << reader2
+      expect(author1.fans).to eq [reader1, reader2]
     end
   end
 end
