@@ -46,26 +46,25 @@ describe 'creating active record instances' do
 
   class User < ActiveRecord::Base
     has_many :posts
-    has_many :user_favourites_posts
+    has_many :user_favourites_posts                                           # REMOVE
     has_many :favourite_posts, through: :user_favourites_posts, source: :post # REMOVE
 
-    def fans # REMOVE
+    def fans                                                                                    # REMOVE
       User.where id: posts.joins(:user_favourites_posts).pluck('user_favourites_posts.user_id') # REMOVE
-    end # REMOVE
+    end                                                                                         # REMOVE
   end
 
   class Post < ActiveRecord::Base
     belongs_to :user
 
     has_many   :user_favourites_posts
-    has_many   :favourited_by, through: :user_favourites_posts,
-                               source:  :user
+    has_many   :favourited_by, through: :user_favourites_posts, source: :user      # REMOVE
 
     scope :with_caption_including,    -> s { where"caption like ?", "%#{s}%" }     # REMOVE
     scope :without_caption_including, -> s { where"caption not like ?", "%#{s}%" } # REMOVE
 
-    validates :name, presence: true # REMOVE
-    validates :name, format: { without: /fork|spoon/i, message: "No dinnerware conversation!" }
+    validates :name, presence: true                                                             # REMOVE
+    validates :name, format: { without: /fork|spoon/i, message: "No dinnerware conversation!" } # REMOVE
   end
 
   let(:user_name) { 'Some user name' }
@@ -161,8 +160,8 @@ describe 'with 10 users and 100 posts' do
   end
 
   specify 'count the users and posts' do
-    user_count = User.count
-    post_count = Post.count
+    user_count = User.count # REMOVE
+    post_count = Post.count # REMOVE
 
     expect(user_count).to eq 10
     expect(post_count).to eq 100
@@ -210,7 +209,7 @@ describe 'with 10 users and 100 posts' do
   end
 
   specify 'the post whose name is "post 45" (where, first)' do
-    post = Post.where(name: 'post 45').first
+    post = Post.where(name: 'post 45').first # REMOVE
     expect(post.name).to eq 'post 45'
   end
 
@@ -222,12 +221,12 @@ describe 'with 10 users and 100 posts' do
 
   specify "user5's three most recent posts (most recent first), without referencing Post (association, limit, order)" do
     user5 = User.find 5
-    posts = user5.posts.limit(3).order('id desc')
+    posts = user5.posts.limit(3).order('id desc') # REMOVE
     expect(posts.pluck :id).to eq [50, 49, 48]
   end
 
   specify "the first three users and their most recent post name (limit, includes)" do
-    users_and_posts = User.limit(3).includes(:posts).map { |u| [u.name, u.posts.take(2).map(&:name)] }
+    users_and_posts = User.limit(3).includes(:posts).map { |u| [u.name, u.posts.take(2).map(&:name)] } # REMOVE
     expect(users_and_posts).to eq [
       ['user 0', ['post 0',  'post 1']],
       ['user 1', ['post 10', 'post 11']],
@@ -340,7 +339,7 @@ describe 'with 10 users and 100 posts' do
           expect(Post.count).to eq initial_count+1
           Post.create!(name: 'spoon', caption: 'caption', body: 'body', user: User.find(1))
           # shouldn't get this far
-        end # REMOVE
+        end                                    # REMOVE
       }.to raise_error
       expect(Post.count).to eq initial_count
     end
