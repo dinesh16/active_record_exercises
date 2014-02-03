@@ -20,11 +20,6 @@ ActiveRecord::Schema.define do
     t.text    :body
     t.integer :user_id
   end
-
-  create_table :user_favourites_posts do |t| # REMOVE
-    t.integer :user_id                       # REMOVE
-    t.integer :post_id                       # REMOVE
-  end                                        # REMOVE
 end
 
 RSpec.configure do |config|
@@ -39,33 +34,12 @@ end
 
 # THE SPECS (start here)
 describe 'creating active record instances' do
-  class UserFavouritesPost < ActiveRecord::Base # REMOVE
-    belongs_to :user                            # REMOVE
-    belongs_to :post                            # REMOVE
-  end                                           # REMOVE
-
   class User < ActiveRecord::Base
     has_many :posts
-    has_many :user_favourites_posts
-    has_many :favourite_posts, through: :user_favourites_posts, source: :post # REMOVE
-
-    def fans # REMOVE
-      User.where id: posts.joins(:user_favourites_posts).pluck('user_favourites_posts.user_id') # REMOVE
-    end # REMOVE
   end
 
   class Post < ActiveRecord::Base
     belongs_to :user
-
-    has_many   :user_favourites_posts
-    has_many   :favourited_by, through: :user_favourites_posts,
-                               source:  :user
-
-    scope :with_caption_including,    -> s { where"caption like ?", "%#{s}%" }     # REMOVE
-    scope :without_caption_including, -> s { where"caption not like ?", "%#{s}%" } # REMOVE
-
-    validates :name, presence: true # REMOVE
-    validates :name, format: { without: /fork|spoon/i, message: "No dinnerware conversation!" }
   end
 
   let(:user_name) { 'Some user name' }
@@ -81,14 +55,14 @@ describe 'creating active record instances' do
 
 
   specify "instantiate a post, but don't save it" do
-    post = Post.new(name: post_name, caption: caption, body: body) # REMOVE
+    post = ??
 
     post_has_expected_attributes post
     expect(post).to be_a_new_record
   end
 
   specify 'instantiate a post and save it without using #save' do
-    post = Post.create(name: post_name, caption: caption, body: body) # REMOVE
+    post = ??
 
     post_has_expected_attributes post
     expect(post).to be_persisted
@@ -96,7 +70,7 @@ describe 'creating active record instances' do
 
   specify 'create a user and build a post without referencing the Post class' do
     user = User.create name: user_name
-    post = user.posts.create name: post_name, caption: caption, body: body # REMOVE
+    post = ??
 
     post_has_expected_attributes post
     expect(post.user  ).to eq user
@@ -106,7 +80,7 @@ describe 'creating active record instances' do
 
   specify 'instantiate a post and build it a user without saving or referencing the Post class' do
     user = User.new name: user_name
-    post = user.posts.build name: post_name, caption: caption, body: body # REMOVE
+    post = ??
 
     post_has_expected_attributes post
     expect(post).to be_a_new_record
@@ -119,12 +93,7 @@ describe 'creating active record instances' do
 
   specify 'build the post with block style' do
     user = User.new do |u|
-      u.name = user_name       # REMOVE
-      u.posts.build do |post|  # REMOVE
-        post.name = post_name  # REMOVE
-        post.caption = caption # REMOVE
-        post.body = body       # REMOVE
-      end
+      ??
     end
 
     expect(user.name       ).to eq user_name
@@ -161,73 +130,73 @@ describe 'with 10 users and 100 posts' do
   end
 
   specify 'count the users and posts' do
-    user_count = User.count
-    post_count = Post.count
+    user_count = ??
+    post_count = ??
 
     expect(user_count).to eq 10
     expect(post_count).to eq 100
   end
 
   specify 'find all the users' do
-    users = User.all # REMOVE
+    users = ??
     expect(users.pluck :id).to eq (1..10).to_a
   end
 
   specify 'find all the posts' do
-    posts = Post.all # REMOVE
+    posts = ??
     expect(posts.pluck :id).to eq (1..100).to_a
   end
 
   specify 'find a specific user' do
-    user8 = User.find 8 # REMOVE
+    user8 = ??
     expect(user8.id).to eq 8
   end
 
   specify 'the first 5 posts (limit)' do
-    first5 = Post.limit(5) # REMOVE
+    first5 = ??
     expect(first5.pluck :id).to eq (1..5).to_a
   end
 
   specify 'the second 5 posts (limit, offset)' do
-    second5 = Post.offset(5).limit(5) # REMOVE
+    second5 = ??
     expect(second5.pluck :id).to eq (6..10).to_a
   end
 
   specify 'the 5 newest posts (limit, order)' do
-    last5 = Post.order('id desc').limit(5) # REMOVE
+    last5 = ??
     expect(last5.pluck :id).to eq (96..100).to_a.reverse
   end
 
   specify 'users where the name is in "user 2", "user 3", "user 5", "user 7" (where)' do
     usernames   = ['user 2', 'user 3', 'user 5', 'user 7']
-    prime_users = User.where name: usernames # REMOVE
+    prime_users = ??
     expect(prime_users.pluck :name).to eq usernames
   end
 
   specify 'count the number of posts whose name has a 1 in it (where, count)' do
-    post_count = Post.where("name like '%1%'").count # REMOVE
+    post_count = ??
     expect(post_count).to eq 19
   end
 
   specify 'the post whose name is "post 45" (where, first)' do
-    post = Post.where(name: 'post 45').first
+    post = ??
     expect(post.name).to eq 'post 45'
   end
 
   specify "user5's first three posts, without referencing Post (association, limit)" do
     user5 = User.find 5
-    posts = user5.posts.limit(3)
+    posts = ??
     expect(posts.pluck :id).to eq [41, 42, 43]
   end
 
   specify "user5's three most recent posts (most recent first), without referencing Post (association, limit, order)" do
     user5 = User.find 5
-    posts = user5.posts.limit(3).order('id desc')
+    posts = ??
     expect(posts.pluck :id).to eq [50, 49, 48]
   end
 
   specify "the first three users and their most recent post name (limit, includes)" do
-    users_and_posts = User.limit(3).includes(:posts).map { |u| [u.name, u.posts.take(2).map(&:name)] }
+    users_and_posts = ??
     expect(users_and_posts).to eq [
       ['user 0', ['post 0',  'post 1']],
       ['user 1', ['post 10', 'post 11']],
@@ -241,20 +210,20 @@ describe 'with 10 users and 100 posts' do
     it 'is implemented' do
       # nothing for you to do here,
       # we're checking that with_caption_including is implemented correctly
-      posts = Post.with_caption_including('2')
+      posts = ??
       expect(posts.pluck :id).to eq [3, 13, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 33, 43, 53, 63, 73, 83, 93]
     end
 
     specify 'second 5 posts with caption including "2"' do
-      posts = Post.with_caption_including('2').offset(5).limit(5) # REMOVE
+      posts = ??
       expect(posts.pluck :id).to eq [24, 25, 26, 27, 28]
     end
 
     specify "a user's posts that contain the caption '3', using with_caption_including, without referencing the Post constant" do
       user1  = User.find 1
       user2  = User.find 2
-      posts1 = user1.posts.with_caption_including('3') # REMOVE
-      posts2 = user2.posts.with_caption_including('3') # REMOVE
+      posts1 = ??
+      posts2 = ??
       expect(posts1.pluck :caption).to eq ['caption 3']
       expect(posts2.pluck :caption).to eq ['caption 13']
     end
@@ -264,16 +233,19 @@ describe 'with 10 users and 100 posts' do
     it 'is implemented' do
       # nothing for you to do here,
       # we're checking that with_caption_including is implemented correctly
-      posts = User.first.posts.without_caption_including('2')
+      posts = ??
       expect(posts.pluck :id).to eq [1, 2, 4, 5, 6, 7, 8, 9, 10]
     end
 
     specify 'posts with caption including "1", without caption including "2"' do
-      posts = Post.with_caption_including('1').without_caption_including('2') # REMOVE
+      posts = ??
       expect(posts.pluck :id).to eq [2, 11, 12, 14, 15, 16, 17, 18, 19, 20, 32, 42, 52, 62, 72, 82, 92]
     end
   end
 
+  # You are going to need to edit the schema and the classes
+  # to make this work
+  # http://guides.rubyonrails.org/association_basics.html
   describe 'favouriting posts' do
     let(:author1) { User.find 1 }
 
@@ -282,9 +254,6 @@ describe 'with 10 users and 100 posts' do
     let(:reader3) { User.find 4 }
 
     specify 'a post can find the users who favourited it' do
-      # You are going to need to edit the schema and the classes
-      # to make this work
-      # http://guides.rubyonrails.org/association_basics.html
       post = Post.first
       post.favourited_by << reader1
       post.favourited_by << reader3
@@ -334,13 +303,11 @@ describe 'with 10 users and 100 posts' do
     specify 'use a transaction to prevent a post from saving', t:true do
       initial_count = Post.count
       expect {
-        Post.transaction requires_new: true do # REMOVE
-          # neither of these should save, since the second one will raise an error
-          Post.create!(name: 'name', caption: 'caption', body: 'body', user: User.find(1))
-          expect(Post.count).to eq initial_count+1
-          Post.create!(name: 'spoon', caption: 'caption', body: 'body', user: User.find(1))
-          # shouldn't get this far
-        end # REMOVE
+        # neither of these should save, since the second one will raise an error
+        Post.create!(name: 'name', caption: 'caption', body: 'body', user: User.find(1))
+        expect(Post.count).to eq initial_count+1
+        Post.create!(name: 'spoon', caption: 'caption', body: 'body', user: User.find(1))
+        # shouldn't get this far
       }.to raise_error
       expect(Post.count).to eq initial_count
     end
