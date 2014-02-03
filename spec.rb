@@ -68,7 +68,7 @@ describe 'creating active record instances' do
     expect(post).to be_persisted
   end
 
-  specify 'create a user and build a post without referencing the Post class' do
+  specify 'create a user and create a post for them without referencing the Post class' do
     user = User.create name: user_name
     post = ??
 
