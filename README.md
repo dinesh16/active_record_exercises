@@ -2,6 +2,18 @@
 
 Exercises for ActiveRecord
 
+# To set up
+
+    bundle
+
+If that fails b/c there is no bundler, then
+
+    gem install bundler
+
+# To run
+
+    rspec spec.rb
+
 ## License
 
 The MIT License (MIT)
