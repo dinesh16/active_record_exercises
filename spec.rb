@@ -80,11 +80,9 @@ describe 'creating active record instances' do
     has_many :posts
     has_many :user_favourites_posts
 
-    def fans
-      posts.joins(:user_favourites_posts)
-           .joins('inner join users fan on fan.id = user_favourites_posts.user_id')
-           # how to now get the fans (favouriters)
-    end
+    def fans # REMOVE
+      User.where id: posts.joins(:user_favourites_posts).pluck('user_favourites_posts.user_id') # REMOVE
+    end # REMOVE
   end
 
   class Post < ActiveRecord::Base
