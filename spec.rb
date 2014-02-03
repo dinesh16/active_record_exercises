@@ -79,6 +79,7 @@ describe 'creating active record instances' do
   class User < ActiveRecord::Base
     has_many :posts
     has_many :user_favourites_posts
+    has_many :favourite_posts, through: :user_favourites_posts, source: :post # REMOVE
 
     def fans # REMOVE
       User.where id: posts.joins(:user_favourites_posts).pluck('user_favourites_posts.user_id') # REMOVE
@@ -89,8 +90,8 @@ describe 'creating active record instances' do
     belongs_to :user
 
     has_many   :user_favourites_posts
-    has_many   :favourited_by, through:    :user_favourites_posts,
-                               source:     :user
+    has_many   :favourited_by, through: :user_favourites_posts,
+                               source:  :user
 
     scope :with_caption_including,    -> s { where"caption like ?", "%#{s}%" }     # REMOVE
     scope :without_caption_including, -> s { where"caption not like ?", "%#{s}%" } # REMOVE
@@ -302,7 +303,7 @@ describe 'with 10 users and 100 posts' do
     end
   end
 
-  describe 'favouriting posts', t:true do
+  describe 'favouriting posts' do
     let(:author1) { User.find 1 }
     let(:author2) { User.find 2 }
 
@@ -310,7 +311,7 @@ describe 'with 10 users and 100 posts' do
     let(:reader2) { User.find 4 }
     let(:reader3) { User.find 5 }
 
-    specify 'a user can favourite a post' do
+    specify 'a post can find the users who favourited it' do
       # You are going to need to edit the schema and the classes
       # to make this work
       # http://guides.rubyonrails.org/association_basics.html
@@ -318,6 +319,14 @@ describe 'with 10 users and 100 posts' do
       post.favourited_by << reader1
       post.favourited_by << reader3
       expect(post.reload.favourited_by).to eq [reader1, reader3]
+    end
+
+    specify 'a user can find their favourite posts' do
+      post1 = Post.first
+      post2 = Post.last
+      reader1.favourite_posts << post1
+      reader1.favourite_posts << post2
+      expect(reader1.favourite_posts).to eq [post1, post2]
     end
 
     specify "can find an author's fans: who has favourited thier posts" do
