@@ -12,7 +12,13 @@ If that fails b/c there is no bundler, then
 
 # To run
 
+All specs:
+
     rspec spec.rb
+
+Just until the first failure
+
+    rspec spec.rb --fail-fast
 
 ## License
 
