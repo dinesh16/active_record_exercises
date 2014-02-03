@@ -2,18 +2,9 @@
 require 'active_record'
 ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: ':memory:'
 
-
-# transactions
-# validations
-#   valid?
-#   save when invalid -> false
-#   save!/create! wen invalid -> error
-#   errors
-#   errors[:attribute]
-#   `validates :attribute_name, presence: true` list the others
-#   custom validations by editing errors
-#   `errors.add(:attribute, 'no dice!')`
-#   `errors[:base]`
+# require 'logger'
+# ActiveRecord::Base.logger = Logger.new $stdout
+# ActiveSupport::LogSubscriber.colorize_logging = false
 
 
 ActiveRecord::Schema.define do
@@ -72,6 +63,9 @@ describe 'creating active record instances' do
 
     scope :with_caption_including,    -> s { where"caption like ?", "%#{s}%" }     # REMOVE
     scope :without_caption_including, -> s { where"caption not like ?", "%#{s}%" } # REMOVE
+
+    validates :name, presence: true # REMOVE
+    validates :name, format: { without: /fork|spoon/i, message: "No dinnerware conversation!" }
   end
 
   let(:user_name) { 'Some user name' }
@@ -152,7 +146,7 @@ describe 'with 10 users and 100 posts' do
 
   before :all do
     10.times do |i|
-      User.create name: "user #{i}" do |user|
+      User.create! name: "user #{i}" do |user|
         10.times do |j|
           post_number = i * 10 + j
           user.posts.build name: "post #{post_number}", caption: "caption #{post_number}", body: "body #{post_number}"
@@ -313,8 +307,39 @@ describe 'with 10 users and 100 posts' do
   end
 
   describe 'validations' do
-    specify 'a user cannot favourite a post two times' do
-      pending 'add more stuffs here!'
+    specify 'a post is invalid if its name is blank' do
+      post = Post.new(name: 'name', caption: 'caption', body: 'body', user: User.find(1))
+      expect(post).to be_valid
+
+      post = Post.new(name: nil, caption: 'caption', body: 'body', user: User.find(1))
+      expect(post).to_not be_valid
+
+      post = Post.new(name: '', caption: 'caption', body: 'body', user: User.find(1))
+      expect(post).to_not be_valid
+    end
+
+    specify 'a post is invalid if its name mentions "fork"' do
+      post = Post.new(name: 'name', caption: 'caption', body: 'body', user: User.find(1))
+      expect(post).to be_valid
+
+      post.name = 'Eat salad with a fork!'
+      expect(post).to_not be_valid
+
+      post.name = 'EAT SALAD WITH A FORK!'
+      expect(post).to_not be_valid
+      expect(post.errors[:name]).to eq ['No dinnerware conversation!']
+    end
+
+    specify 'use a transaction to prevent a post from saving', t:true do
+      initial_count = Post.count
+      expect {
+        Post.transaction do
+          Post.create!(name: 'name', caption: 'caption', body: 'body', user: User.find(1))
+          expect(Post.count).to eq initial_count+1
+          Post.create!(name: 'spoon', caption: 'caption', body: 'body', user: User.find(1))
+        end
+      }.to raise_error
+      expect(Post.count).to eq initial_count
     end
   end
 end
