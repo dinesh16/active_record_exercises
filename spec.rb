@@ -210,7 +210,7 @@ describe 'with 10 users and 100 posts' do
     it 'is implemented' do
       # nothing for you to do here,
       # we're checking that with_caption_including is implemented correctly
-      posts = ??
+      posts = Post.with_caption_including('2')
       expect(posts.pluck :id).to eq [3, 13, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 33, 43, 53, 63, 73, 83, 93]
     end
 
@@ -233,7 +233,7 @@ describe 'with 10 users and 100 posts' do
     it 'is implemented' do
       # nothing for you to do here,
       # we're checking that with_caption_including is implemented correctly
-      posts = ??
+      posts = User.first.posts.without_caption_including('2')
       expect(posts.pluck :id).to eq [1, 2, 4, 5, 6, 7, 8, 9, 10]
     end
 
