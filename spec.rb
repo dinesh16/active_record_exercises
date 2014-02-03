@@ -306,6 +306,7 @@ describe 'with 10 users and 100 posts' do
     end
   end
 
+  # you'll need to go add validations for these
   describe 'validations' do
     specify 'a post is invalid if its name is blank' do
       post = Post.new(name: 'name', caption: 'caption', body: 'body', user: User.find(1))
@@ -333,11 +334,13 @@ describe 'with 10 users and 100 posts' do
     specify 'use a transaction to prevent a post from saving', t:true do
       initial_count = Post.count
       expect {
-        Post.transaction do
+        Post.transaction requires_new: true do # REMOVE
+          # neither of these should save, since the second one will raise an error
           Post.create!(name: 'name', caption: 'caption', body: 'body', user: User.find(1))
           expect(Post.count).to eq initial_count+1
           Post.create!(name: 'spoon', caption: 'caption', body: 'body', user: User.find(1))
-        end
+          # shouldn't get this far
+        end # REMOVE
       }.to raise_error
       expect(Post.count).to eq initial_count
     end
