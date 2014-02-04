@@ -331,14 +331,14 @@ describe 'with 10 users and 100 posts' do
     end
 
     specify 'use a transaction to prevent a post from saving' do
+      # check out the docs at http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/DatabaseStatements.html#method-i-transaction
+
       initial_count = Post.count
       expect {
         Post.transaction requires_new: true do # REMOVE
-          # neither of these should save, since the second one will raise an error
-          Post.create!(name: 'name', caption: 'caption', body: 'body', user: User.find(1))
+          Post.create!(name: 'name', caption: 'caption', body: 'body', user: User.first)
           expect(Post.count).to eq initial_count+1
-          Post.create!(name: 'spoon', caption: 'caption', body: 'body', user: User.find(1))
-          # shouldn't get this far
+          raise 'An error!'
         end                                    # REMOVE
       }.to raise_error
       expect(Post.count).to eq initial_count
