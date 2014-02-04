@@ -311,5 +311,14 @@ describe 'with 10 users and 100 posts' do
       }.to raise_error
       expect(Post.count).to eq initial_count
     end
+
+    specify 'a post is not valid unless it has a user', t:true do
+      post = Post.new(name: 'name', caption: 'caption', body: 'body', user: User.find(1))
+      expect(post).to be_valid
+      post = Post.new(name: 'name', caption: 'caption', body: 'body', user_id: 1)
+      expect(post).to be_valid
+      post = Post.new(name: 'name', caption: 'caption', body: 'body')
+      expect(post).to_not be_valid
+    end
   end
 end
