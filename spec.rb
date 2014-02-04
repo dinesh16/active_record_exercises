@@ -32,16 +32,16 @@ RSpec.configure do |config|
 end
 
 
+class User < ActiveRecord::Base
+  has_many :posts
+end
+
+class Post < ActiveRecord::Base
+  belongs_to :user
+end
+
 # THE SPECS (start here)
 describe 'creating active record instances' do
-  class User < ActiveRecord::Base
-    has_many :posts
-  end
-
-  class Post < ActiveRecord::Base
-    belongs_to :user
-  end
-
   let(:user_name) { 'Some user name' }
   let(:post_name) { 'Some post name' }
   let(:caption)   { 'Some caption'   }
@@ -62,6 +62,7 @@ describe 'creating active record instances' do
   end
 
   specify 'instantiate a post and save it without using #save' do
+    user = User.create
     post = ??
 
     post_has_expected_attributes post
@@ -105,14 +106,6 @@ end
 
 
 describe 'with 10 users and 100 posts' do
-  class User < ActiveRecord::Base
-    has_many :posts
-  end
-
-  class Post < ActiveRecord::Base
-    belongs_to :user
-  end
-
   before :all do
     10.times do |i|
       User.create! name: "user #{i}" do |user|
