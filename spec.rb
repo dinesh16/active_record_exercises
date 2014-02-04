@@ -36,37 +36,39 @@ RSpec.configure do |config|
   end
 end
 
+class UserFavouritesPost < ActiveRecord::Base # REMOVE
+  belongs_to :user                            # REMOVE
+  belongs_to :post                            # REMOVE
+end                                           # REMOVE
+
+class User < ActiveRecord::Base
+  has_many :posts, inverse_of: :user # REMOVE inverse_of
+  has_many :user_favourites_posts                                           # REMOVE
+  has_many :favourite_posts, through: :user_favourites_posts, source: :post # REMOVE
+
+  def fans                                                                                    # REMOVE
+    User.where id: posts.joins(:user_favourites_posts).pluck('user_favourites_posts.user_id') # REMOVE
+  end                                                                                         # REMOVE
+end
+
+class Post < ActiveRecord::Base
+  belongs_to :user, inverse_of: :posts # REMOVE inverse_of
+
+  has_many   :user_favourites_posts
+  has_many   :favourited_by, through: :user_favourites_posts, source: :user      # REMOVE
+
+  scope :with_caption_including,    -> s { where"caption like ?", "%#{s}%" }     # REMOVE
+  scope :without_caption_including, -> s { where"caption not like ?", "%#{s}%" } # REMOVE
+
+  validates :name, presence: true                                                             # REMOVE
+  validates :name, format: { without: /fork|spoon/i, message: "No dinnerware conversation!" } # REMOVE
+  validates :user, presence: true
+end
+
+
 
 # THE SPECS (start here)
 describe 'creating active record instances' do
-  class UserFavouritesPost < ActiveRecord::Base # REMOVE
-    belongs_to :user                            # REMOVE
-    belongs_to :post                            # REMOVE
-  end                                           # REMOVE
-
-  class User < ActiveRecord::Base
-    has_many :posts
-    has_many :user_favourites_posts                                           # REMOVE
-    has_many :favourite_posts, through: :user_favourites_posts, source: :post # REMOVE
-
-    def fans                                                                                    # REMOVE
-      User.where id: posts.joins(:user_favourites_posts).pluck('user_favourites_posts.user_id') # REMOVE
-    end                                                                                         # REMOVE
-  end
-
-  class Post < ActiveRecord::Base
-    belongs_to :user
-
-    has_many   :user_favourites_posts
-    has_many   :favourited_by, through: :user_favourites_posts, source: :user      # REMOVE
-
-    scope :with_caption_including,    -> s { where"caption like ?", "%#{s}%" }     # REMOVE
-    scope :without_caption_including, -> s { where"caption not like ?", "%#{s}%" } # REMOVE
-
-    validates :name, presence: true                                                             # REMOVE
-    validates :name, format: { without: /fork|spoon/i, message: "No dinnerware conversation!" } # REMOVE
-  end
-
   let(:user_name) { 'Some user name' }
   let(:post_name) { 'Some post name' }
   let(:caption)   { 'Some caption'   }
@@ -87,7 +89,8 @@ describe 'creating active record instances' do
   end
 
   specify 'instantiate a post and save it without using #save' do
-    post = Post.create(name: post_name, caption: caption, body: body) # REMOVE
+    user = User.create
+    post = Post.create(name: post_name, caption: caption, body: body, user: user) # REMOVE
 
     post_has_expected_attributes post
     expect(post).to be_persisted
@@ -135,14 +138,6 @@ end
 
 
 describe 'with 10 users and 100 posts' do
-  class User < ActiveRecord::Base
-    has_many :posts
-  end
-
-  class Post < ActiveRecord::Base
-    belongs_to :user
-  end
-
   before :all do
     10.times do |i|
       User.create! name: "user #{i}" do |user|
