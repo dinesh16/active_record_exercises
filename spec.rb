@@ -188,7 +188,9 @@ describe 'with 10 users and 100 posts' do
     expect(posts.pluck :id).to eq [50, 49, 48]
   end
 
-  specify "the first three users and their most recent post name (limit, includes)" do
+  specify "the first three users and their most recent post name (limit, includes+map)" do
+    # you'll need to map over the users, but use includes so that
+    # you don't have to make a separate database query for each user's posts as you map
     users_and_posts = ??
     expect(users_and_posts).to eq [
       ['user 0', ['post 0',  'post 1']],
