@@ -221,6 +221,8 @@ describe 'with 10 users and 100 posts' do
   end
 
   specify "the first three users and their most recent post name (limit, includes)" do
+    # you'll need to map over the users, but use includes so that
+    # you don't have to make a separate database query for each user's posts as you map
     users_and_posts = User.limit(3).includes(:posts).map { |u| [u.name, u.posts.take(2).map(&:name)] } # REMOVE
     expect(users_and_posts).to eq [
       ['user 0', ['post 0',  'post 1']],
