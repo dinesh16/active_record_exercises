@@ -48,9 +48,9 @@ describe 'creating active record instances' do
   let(:body)      { 'Lorem ipsum dolor sit amet, consectetur adipisicing elit...' }
 
   def post_has_expected_attributes(post)
-    expect(post.name    ).to eq post_name
-    expect(post.caption ).to eq caption
     expect(post.body    ).to eq body
+    expect(post.caption ).to eq caption
+    expect(post.name    ).to eq post_name
   end
 
 
