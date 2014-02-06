@@ -2,6 +2,7 @@
 require 'active_record'
 ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: ':memory:'
 
+
 # require 'logger'
 # ActiveRecord::Base.logger = Logger.new $stdout
 # ActiveSupport::LogSubscriber.colorize_logging = false
@@ -32,12 +33,14 @@ RSpec.configure do |config|
 end
 
 
+
 class User < ActiveRecord::Base
   has_many :posts
 end
 
 class Post < ActiveRecord::Base
   belongs_to :user
+  scope :with_caption_including, lambda { |value| where("caption LIKE ? ", "%#{value.to_s}%") }
 end
 
 # THE SPECS (start here)
@@ -55,7 +58,7 @@ describe 'creating active record instances' do
 
 
   specify "instantiate a post, but don't save it" do
-    post = ??
+    post = Post.new(name: post_name,caption: caption,body: body)
 
     post_has_expected_attributes post
     expect(post).to be_a_new_record
@@ -63,7 +66,7 @@ describe 'creating active record instances' do
 
   specify 'instantiate a post and save it without using #save' do
     user = User.create
-    post = ??
+    post = Post.create(name: post_name,caption: caption,body: body)
 
     post_has_expected_attributes post
     expect(post).to be_persisted
@@ -71,7 +74,7 @@ describe 'creating active record instances' do
 
   specify 'create a user and create a post for them without referencing the Post class' do
     user = User.create name: user_name
-    post = ??
+    post = user.posts.create(name: post_name,caption: caption,body: body)
 
     post_has_expected_attributes post
     expect(post.user  ).to eq user
@@ -81,7 +84,7 @@ describe 'creating active record instances' do
 
   specify 'instantiate a post and build it a user without saving or referencing the Post class' do
     user = User.new name: user_name
-    post = ??
+    post = user.posts.build(name: post_name,caption: caption,body: body)
 
     post_has_expected_attributes post
     expect(post).to be_a_new_record
@@ -94,7 +97,8 @@ describe 'creating active record instances' do
 
   specify 'build the post with block style' do
     user = User.new do |u|
-      ??
+      u.name = user_name
+      u.posts.build(name: post_name,caption: caption,body: body)
     end
 
     expect(user.name       ).to eq user_name
@@ -123,75 +127,80 @@ describe 'with 10 users and 100 posts' do
   end
 
   specify 'count the users and posts' do
-    user_count = ??
-    post_count = ??
+    user_count = User.count
+    post_count = Post.count
 
     expect(user_count).to eq 10
     expect(post_count).to eq 100
   end
 
   specify 'find all the users' do
-    users = ??
+    users = User.all
     expect(users.pluck :id).to eq (1..10).to_a
   end
 
   specify 'find all the posts' do
-    posts = ??
+    posts = Post.all
     expect(posts.pluck :id).to eq (1..100).to_a
   end
 
   specify 'find a specific user' do
-    user8 = ??
+    user8 = User.find(8)
     expect(user8.id).to eq 8
   end
 
   specify 'the first 5 posts (limit)' do
-    first5 = ??
+    first5 = Post.limit 5
     expect(first5.pluck :id).to eq (1..5).to_a
   end
 
   specify 'the second 5 posts (limit, offset)' do
-    second5 = ??
+    second5 = Post.limit(5).offset(5)
     expect(second5.pluck :id).to eq (6..10).to_a
   end
 
   specify 'the 5 newest posts (limit, order)' do
-    last5 = ??
+    last5 = Post.order('id DESC').limit(5)
     expect(last5.pluck :id).to eq (96..100).to_a.reverse
   end
 
   specify 'users where the name is in "user 2", "user 3", "user 5", "user 7" (where)' do
     usernames   = ['user 2', 'user 3', 'user 5', 'user 7']
-    prime_users = ??
+    prime_users = User.where('name in ("user 2","user 3","user 5","user 7")')
     expect(prime_users.pluck :name).to eq usernames
   end
 
   specify 'count the number of posts whose name has a 1 in it (where, count)' do
-    post_count = ??
+    post_count = Post.where("name LIKE '%1%'").count
     expect(post_count).to eq 19
   end
 
   specify 'the post whose name is "post 45" (where, first)' do
-    post = ??
+    post = Post.where("name = 'post 45'").first
+    #puts post.inspect
     expect(post.name).to eq 'post 45'
   end
 
   specify "user5's first three posts, without referencing Post (association, limit)" do
     user5 = User.find 5
-    posts = ??
+    posts = user5.posts.limit(3)
     expect(posts.pluck :id).to eq [41, 42, 43]
   end
 
   specify "user5's three most recent posts (most recent first), without referencing Post (association, limit, order)" do
     user5 = User.find 5
-    posts = ??
+    posts = user5.posts.order('id desc').limit(3)
     expect(posts.pluck :id).to eq [50, 49, 48]
   end
 
   specify "the first three users and their most recent post name (limit, includes+map)" do
     # you'll need to map over the users, but use includes so that
     # you don't have to make a separate database query for each user's posts as you map
-    users_and_posts = ??
+    users_and_posts = User.includes(:posts).order('id asc').limit(3).map do |u|
+      user_posts = []
+      user_posts << u.name
+      user_posts << u.posts.order('id asc').limit(2).pluck(:name)
+    end
     expect(users_and_posts).to eq [
       ['user 0', ['post 0',  'post 1']],
       ['user 1', ['post 10', 'post 11']],
@@ -229,6 +238,7 @@ describe 'with 10 users and 100 posts' do
       # nothing for you to do here,
       # we're checking that with_caption_including is implemented correctly
       posts = User.first.posts.without_caption_including('2')
+      puts posts.inspect
       expect(posts.pluck :id).to eq [1, 2, 4, 5, 6, 7, 8, 9, 10]
     end
 
