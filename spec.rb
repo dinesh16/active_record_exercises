@@ -21,6 +21,11 @@ ActiveRecord::Schema.define do
     t.text    :body
     t.integer :user_id
   end
+
+  create_table :posts_users do |t|
+    t.integer :user_id
+    t.integer :post_id
+  end  
 end
 
 RSpec.configure do |config|
@@ -33,14 +38,23 @@ RSpec.configure do |config|
 end
 
 
+class Favourite < ActiveRecord::Base
+  belongs_to :post
+  belongs_to :user
+end
 
 class User < ActiveRecord::Base
   has_many :posts
+  has_many :favourites
+  has_and_belongs_to_many  :favourite_posts, class_name: "Post"
 end
 
 class Post < ActiveRecord::Base
   belongs_to :user
+  has_and_belongs_to_many  :favourited_by, class_name: "User"
   scope :with_caption_including, lambda { |value| where("caption LIKE ? ", "%#{value.to_s}%") }
+  scope :without_caption_including, lambda { |value| where("caption NOT LIKE ? ", "%#{value.to_s}%") }
+
 end
 
 # THE SPECS (start here)
@@ -219,15 +233,15 @@ describe 'with 10 users and 100 posts' do
     end
 
     specify 'second 5 posts with caption including "2"' do
-      posts = ??
+      posts = Post.with_caption_including('2').offset(5).limit(5)
       expect(posts.pluck :id).to eq [24, 25, 26, 27, 28]
     end
 
     specify "a user's posts that contain the caption '3', using with_caption_including, without referencing the Post constant" do
       user1  = User.find 1
       user2  = User.find 2
-      posts1 = ??
-      posts2 = ??
+      posts1 = user1.posts.with_caption_including('3')
+      posts2 = user2.posts.with_caption_including('3')
       expect(posts1.pluck :caption).to eq ['caption 3']
       expect(posts2.pluck :caption).to eq ['caption 13']
     end
@@ -243,7 +257,7 @@ describe 'with 10 users and 100 posts' do
     end
 
     specify 'posts with caption including "1", without caption including "2"' do
-      posts = ??
+      posts = Post.with_caption_including('1').without_caption_including('2')
       expect(posts.pluck :id).to eq [2, 11, 12, 14, 15, 16, 17, 18, 19, 20, 32, 42, 52, 62, 72, 82, 92]
     end
   end
@@ -260,8 +274,10 @@ describe 'with 10 users and 100 posts' do
 
     specify 'a post can find the users who favourited it' do
       post = Post.first
+      #puts post.favourited_by.inspect
       post.favourited_by << reader1
       post.favourited_by << reader3
+      puts post.favourited_by.inspect
       expect(post.reload.favourited_by).to eq [reader1, reader3]
     end
 
